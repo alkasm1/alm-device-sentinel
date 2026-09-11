@@ -29,8 +29,10 @@ export class DiscoveryEngine {
 
         observedDevices: 0,
         confirmedPeers: 0,
+
         devices: [],
         sources: [],
+
         limitations: [
           "Network information could not be determined"
         ]
@@ -47,9 +49,10 @@ export class DiscoveryEngine {
       }
 
       try {
-        const result = await adapter.discover(
-          networkInfo.cidr
-        );
+        const result =
+          await adapter.discover(
+            networkInfo.cidr
+          );
 
         results.push({
           adapter:
@@ -70,24 +73,36 @@ export class DiscoveryEngine {
       }
     }
 
-    const successful = results.filter(
-      result =>
-        result.success === true
-    );
+    const successful =
+      results.filter(
+        result =>
+          result.success === true
+      );
 
-    const devices = this.mergeDevices(
+    const discoveredDevices =
       successful.flatMap(
-        result => result.devices || []
-      )
-    );
+        result =>
+          result.devices || []
+      );
 
     /*
-     * "Observed" means devices returned by at least
-     * one successful discovery source.
+     * Remove the local Sentinel device.
      *
-     * "Confirmed peer" means a device other than
-     * the local device.
+     * The device running Sentinel is not considered
+     * a discovered peer.
      */
+    const peerDevices =
+      discoveredDevices.filter(
+        device =>
+          device.ip !==
+          networkInfo.localIp
+      );
+
+    const devices =
+      this.mergeDevices(
+        peerDevices
+      );
+
     const observedDevices =
       devices.length;
 
@@ -95,7 +110,8 @@ export class DiscoveryEngine {
       devices.filter(
         device =>
           device.ip &&
-          device.ip !== networkInfo.localIp
+          device.ip !==
+            networkInfo.localIp
       ).length;
 
     const hasNonLocalDevice =
@@ -131,13 +147,15 @@ export class DiscoveryEngine {
     return {
       success: true,
 
-      status: hasNonLocalDevice
-        ? "AVAILABLE"
-        : "LIMITED",
+      status:
+        hasNonLocalDevice
+          ? "AVAILABLE"
+          : "LIMITED",
 
-      confidence: hasNonLocalDevice
-        ? "medium"
-        : "low",
+      confidence:
+        hasNonLocalDevice
+          ? "medium"
+          : "low",
 
       network: {
         interface:
@@ -191,9 +209,12 @@ export class DiscoveryEngine {
       }
 
       if (!merged.has(key)) {
-        merged.set(key, {
-          ...device
-        });
+        merged.set(
+          key,
+          {
+            ...device
+          }
+        );
 
         continue;
       }
@@ -201,20 +222,25 @@ export class DiscoveryEngine {
       const existing =
         merged.get(key);
 
-      merged.set(key, {
-        ...existing,
-        ...device,
+      merged.set(
+        key,
+        {
+          ...existing,
+          ...device,
 
-        mac:
-          device.mac ||
-          existing.mac,
+          mac:
+            device.mac ||
+            existing.mac,
 
-        hostname:
-          device.hostname ||
-          existing.hostname
-      });
+          hostname:
+            device.hostname ||
+            existing.hostname
+        }
+      );
     }
 
-    return [...merged.values()];
+    return [
+      ...merged.values()
+    ];
   }
 }
