@@ -1,0 +1,19 @@
+{
+  "name": "alm-device-sentinel",
+  "version": "0.1.0",
+  "description": "Lightweight network device visibility, change detection, and explainable risk monitoring.",
+  "type": "module",
+  "main": "backend/index.js",
+  "scripts": {
+    "start": "node backend/index.js",
+    "test": "node --test"
+  },
+  "keywords": [
+    "alm",
+    "network",
+    "security",
+    "device-monitoring",
+    "asset-visibility"
+  ],
+  "license": "MIT"
+}
